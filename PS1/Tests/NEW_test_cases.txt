@@ -1,0 +1,27 @@
+Test case 1:
+Geometry:
+4
+79 0.0 -5 0.0
+79 0.0 0 0.0
+79 0.0 5 0.0
+79 -4.6 0 0.0
+LJ energy is: -1.7358
+Analytical force
+   -0.042191     0.56398           0
+    -0.89489           0           0
+   -0.042191    -0.56398           0
+     0.97927           0           0
+Force norm = 1.549
+
+Test case 2:
+Geometry:
+3
+79           0          -4           0
+79           0           0           0
+79           0           5           0
+LJ energy is: -2.0192
+Analytical force
+           0       2.155           0
+           0     -1.6323           0
+           0    -0.52269           0
+Force norm = 2.7534
