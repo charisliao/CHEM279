@@ -19,6 +19,7 @@ Desktop.ini
 *.sqlite3
 *.swp
 *.dSYM/
+*.zip
 
 # Ignore OS-generated files
 .DS_Store
