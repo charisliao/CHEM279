@@ -30,16 +30,30 @@ int main() {
     ShellPair s1p1(s1, p1);
     ShellPair s1s2(s1, s2);
     ShellPair s1p2(s1, p2);
+    ShellPair p1p2(p1, p2);
 
 
 
-    std::cout << "Analytical integral test" << std::endl;
+    // print out matrix
+    std::cout <<"Analytical Integral Test: " << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
-    std::cout << "Overlap integral between s1 and s1: " << s1s1.overlap_integral() << std::endl;
-    std::cout << "Overlap integral between s1 and p1: " << s1p1.overlap_integral() << std::endl;
-    std::cout << "Overlap integral between s1 and s2: " << s1s2.overlap_integral() << std::endl;
-    std::cout << "Overlap integral between s1 and p2: " << s1p2.overlap_integral() << std::endl;
+    std::cout << "Overlap integral between s1 and s1: " << std::endl;
+    s1s1.overlap_integral_3D();
+    
+    std::cout << "Overlap integral between s1 and p1: " << std::endl;
+    s1p1.overlap_integral_3D();
+    
+    std::cout << "Overlap integral between s1 and s2: " << std::endl;
+    s1s2.overlap_integral_3D();
+    
+    std::cout << "Overlap integral between s1 and p2: " << std::endl;
+    s1p2.overlap_integral_3D();
+
+    std::cout << "Overlap integral between p1 and p2: " << std::endl;
+    p1p2.overlap_integral_3D();
+    
     std::cout << std::endl;
+
   
     return 0;
 

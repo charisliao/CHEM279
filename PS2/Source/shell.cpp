@@ -57,7 +57,7 @@ double ShellPair::factorial(double n) {
 
 // double factorial function
 double ShellPair::double_factorial(double n) {
-    if (n == 0 || n == 1) {
+    if (n <= 1) {
         return 1;
     }
     else {
@@ -67,6 +67,9 @@ double ShellPair::double_factorial(double n) {
 
 // binomial coefficient function
 double ShellPair::binomial(int m, int n) {
+    if (m < n) {
+        return 0.0;
+    }
     return factorial(m) / (factorial(n) * factorial(m - n));
 }
 
@@ -81,42 +84,55 @@ double ShellPair::prefector(int dimension) {
     return exp(-(s1_alpha * s2_alpha * r(dimension) * r(dimension)) / (s1_alpha + s2_alpha)) * pow(M_PI / (s1_alpha + s2_alpha), 0.5);
 }
 
-double ShellPair::overlap_integral_1D(int coord, int angular_momentum1, int angular_momentum2) {
+double ShellPair::overlap_integral_1D(int dimension, int angular_momentum1, int angular_momentum2) {
+   
+    double prefactor_1D = prefector(dimension);
+    arma::vec center_product = center_of_product();
+    double double_sum = 0.0;
+    
+    for (int i = 0; i <= angular_momentum1; i++) {
+        for (int j = 0; j <= angular_momentum2; j++) {
+            if ((i+j) % 2 == 0) {
+                double_sum += binomial(angular_momentum1, i) * binomial(angular_momentum2, j) * ((double_factorial(i+j-1) * pow(center_product(dimension) - s1_center_vec(dimension), angular_momentum1 - i) * pow(center_product(dimension) - s2_center_vec(dimension), angular_momentum2 - j)) / pow(2 * (s1_alpha + s2_alpha), double(i+j)/2));
+            }   
+        }
+    }
+ 
+    return double_sum;
+}
 
-    double prefactor_1D = prefector(coord);
-
+arma::mat ShellPair::overlap_integral_3D() {
     // check how many rows the angular momentum matrix has
     int num_rows1 = s1_angular_momentum.n_rows;
     int num_rows2 = s2_angular_momentum.n_rows;
 
-    arma::mat double_summation_matrix;
+    arma::mat integral_matrix;
+    
 
     if (num_rows1 * num_rows2 == 1) { // both S-orbitals
-        double_summation_matrix = arma::zeros(1, 1);
+        integral_matrix = arma::zeros(1, 1);
     } else if (num_rows1 * num_rows2 == 3) { // one S-orbital and one P-orbital
-        double_summation_matrix = arma::zeros(1, 3);
+        integral_matrix = arma::zeros(1, 3);
     } else if (num_rows1 * num_rows2 == 9) { // both P-orbitals
-        double_summation_matrix = arma::zeros(3, 3);
+        integral_matrix = arma::zeros(3, 3);
     } else {
-        double_summation_matrix = arma::zeros(1, 1);
+        integral_matrix= arma::zeros(1, 1);
     }
 
-    arma::vec center_product = center_of_product();
-
-    for (int i = 0; i <= angular_momentum1; i++) {
-        for (int j = 0; j <= angular_momentum2; j++) {
-            if ((i+j) % 2 == 0) {
-                result += binomial(angular_momentum1, i) * binomial(angular_momentum2, j) \
-                        * (double_factorial(i+j-1) * pow(center_product(coord) - s1_center_vec(coord), angular_momentum1 - i) \
-                        * pow(center_product(coord) - s2_center_vec(coord), angular_momentum2 - j)) / pow(2 * (s1_alpha + s2_alpha), (i+j)/2);
-            }   
+    // Loop through dimensions (x, y, z)
+    for (int i = 0; i < integral_matrix.n_rows; i++) {
+        for (int j = 0; j < integral_matrix.n_cols; j++) {
+            integral_matrix(i, j) = overlap_integral_1D(0, int(s1_angular_momentum(i, 0)), int(s2_angular_momentum(j, 0))) \
+                                    * overlap_integral_1D(1, int(s1_angular_momentum(i, 1)), int(s2_angular_momentum(j, 1))) \
+                                    * overlap_integral_1D(2, int(s1_angular_momentum(i, 2)), int(s2_angular_momentum(j, 2)));
+                                
         }
     }
-    return result;
-    
-    }
+    integral_matrix.print();
+    return integral_matrix;
 
-    return double_summation_matrix;
+
+
 
 }
 
@@ -156,9 +172,9 @@ double ShellPair::overlap_integral_1D(int coord, int angular_momentum1, int angu
     //             }
 
     //             // Store the result in the appropriate row and dimension of the result matrix
-    //             double_summation_matrix(row1 * num_rows2 + row2, dimension) = result;
+    //             integral_matrix(row1 * num_rows2 + row2, dimension) = result;
     //             // multiply by the prefector
-    //             double_summation_matrix(row1 * num_rows2 + row2, dimension) *= prefector(dimension);
+    //             integral_matrix(row1 * num_rows2 + row2, dimension) *= prefector(dimension);
     //         }
 
     //     }

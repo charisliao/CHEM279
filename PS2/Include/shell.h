@@ -39,7 +39,7 @@ class ShellPair {
         double binomial(int m, int n);
         arma::vec center_of_product();
         double prefector(int dimension);
-        arma::mat overlap_integral();
-        
+        double overlap_integral_1D(int dimension, int angular_momentum1, int angular_momentum2);
+        arma::mat overlap_integral_3D();
 };
 

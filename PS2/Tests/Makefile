@@ -42,13 +42,6 @@ test_2.2: $(INC_DIR)/shell.h
 
 
 
-test_3: $(INC_DIR)/lennard_jones.h $(INC_DIR)/molecule.h $(INC_DIR)/steepest_descent.h
-	$(CPP) $(CPPFLAGS) test_3 test_3.cpp \
-	-I$(INC_DIR) -I$(ARMADILLO_DIR)/include \
-	$(LIB_DIR)/lennard_jones.a
-	mv test_3 $(BIN_DIR)
-
-
 all: $(EXECUTABLES)
 
 cleanall:
