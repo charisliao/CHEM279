@@ -98,7 +98,7 @@ double ShellPair::overlap_integral_1D(int dimension, int angular_momentum1, int 
         }
     }
  
-    return double_sum;
+    return double_sum * prefactor_1D;
 }
 
 arma::mat ShellPair::overlap_integral_3D() {
@@ -122,6 +122,11 @@ arma::mat ShellPair::overlap_integral_3D() {
     // Loop through dimensions (x, y, z)
     for (int i = 0; i < integral_matrix.n_rows; i++) {
         for (int j = 0; j < integral_matrix.n_cols; j++) {
+
+            // std::cout << "the overlap integral 1d for x: " << overlap_integral_1D(0, int(s1_angular_momentum(i, 0)), int(s2_angular_momentum(j, 0))) << std::endl;
+            // std::cout << "the overlap integral 1d for y: " << overlap_integral_1D(1, int(s1_angular_momentum(i, 1)), int(s2_angular_momentum(j, 1))) << std::endl;
+            // std::cout << "the overlap integral 1d for z: " << overlap_integral_1D(2, int(s1_angular_momentum(i, 2)), int(s2_angular_momentum(j, 2))) << std::endl;
+            
             integral_matrix(i, j) = overlap_integral_1D(0, int(s1_angular_momentum(i, 0)), int(s2_angular_momentum(j, 0))) \
                                     * overlap_integral_1D(1, int(s1_angular_momentum(i, 1)), int(s2_angular_momentum(j, 1))) \
                                     * overlap_integral_1D(2, int(s1_angular_momentum(i, 2)), int(s2_angular_momentum(j, 2)));
