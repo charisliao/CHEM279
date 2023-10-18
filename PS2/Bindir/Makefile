@@ -15,9 +15,7 @@ EXECUTABLES = run_test_2.1 run_test_2.2
 
 EXECUTABLES_NAME =test_2.1 test_2.2
 
-UTILS_DIR = ../Utils/Plots/Data
 
-# UTILS_DIR = ../Utils/Plots/Data
 
 # The next line will run the battery_model executable
 
@@ -34,7 +32,7 @@ all: $(EXECUTABLES)
 
 # The next line will remove all the executables 
 cleanall:
-	rm -f problem_2.txt 
+	
 	rm -f $(EXECUTABLES_NAME)
 	
 

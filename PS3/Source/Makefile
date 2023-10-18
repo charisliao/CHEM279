@@ -21,10 +21,10 @@ LIB_DIR     = ../Libdir
 ARMADILLO_DIR = /Users/charisliao/Desktop/armadillo-12.6.2
 
 # The next line contains the list of object files created by this Makefile.
-INTEGRATION_OBJS = gaussian.o numerical-integration.o shell.o
-INTEGRATION_LIB = numerical-integration.a
+INTEGRATION_OBJS = AO.o utils.o hamiltonian.o
+INTEGRATION_LIB = AO.a
 
-numerical-integration.a: $(INTEGRATION_OBJS)
+AO.a: $(INTEGRATION_OBJS)
 # create a library file from the object files
 	ar ru $(INTEGRATION_LIB) $(INTEGRATION_OBJS)
 # check the library
@@ -33,14 +33,14 @@ numerical-integration.a: $(INTEGRATION_OBJS)
 	rm $(INTEGRATION_OBJS)
 
 
-gaussian.o: $(INC_DIR)/gaussian.h
-	$(CPP) $(CPPFLAGS) gaussian.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
+AO.o: $(INC_DIR)/AO.h $(INC_DIR)/utils.h
+	$(CPP) $(CPPFLAGS) AO.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
 
-numerical-integration.o: $(INC_DIR)/numerical-integration.h $(INC_DIR)/gaussian.h
-	$(CPP) $(CPPFLAGS) numerical-integration.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
+utils.o: $(INC_DIR)/utils.h 
+	$(CPP) $(CPPFLAGS) utils.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
 
-shell.o: $(INC_DIR)/shell.h
-	$(CPP) $(CPPFLAGS) shell.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
+hamiltonian.o: $(INC_DIR)/hamiltonian.h $(INC_DIR)/AO.h $(INC_DIR)/utils.h
+	$(CPP) $(CPPFLAGS) hamiltonian.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
 
 
 all: $(INTEGRATION_LIB)

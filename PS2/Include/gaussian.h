@@ -10,16 +10,20 @@
  */
 
 #pragma once
+#include <armadillo>
 
 class Gaussian {
     public:
         double center; 
         double alpha; 
         double angular_momentum; 
+        arma::vec center_vec;
+        arma::mat angular_momentum_mat;
 
         Gaussian(double center, double alpha, double angular_momentum);
 
         double gaussian(double point);
+
 
 };
 
