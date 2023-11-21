@@ -14,8 +14,9 @@ int main() {
     // create AO object
     // print out the number of basis functions, number of electrons, and number of atoms
     // print out the basis set
-    
+    cout << "H: " << endl;
     AO H_ao("H.txt");
+    cout << "Done initializing H" << endl;
 
     cout << "Overlap Matrix for H: " << endl;
     vector<BasisFunction> basis_set = H_ao.basis_set;
@@ -43,6 +44,7 @@ int main() {
     arma::mat Hcore = CNDO_H.computeCoreHamiltonianMatrix(atom_types, basis_set);
     Hcore.print();
     
+    CNDO_H.updateDensityMatrix(H_ao, "myH.txt");
 
 
 

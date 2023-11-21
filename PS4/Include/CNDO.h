@@ -35,5 +35,12 @@ class CNDO {
         std::string extractElement(const std::string& AO_type);
 
         std::string extractOrbital(const std::string& AO_type);
+        double offDiagonalFockElement(double BetaA, double BetaB, double overlap, double p, double gammaAB);
+        double diagonalFockElement(double IA, double ZA, double gammaAA, double pTotalA, double pMuMu, double pZBgammaAB);
+        arma::mat computeFockMatrix(vector<string> atom_types, vector<BasisFunction>& basis_set, arma::mat& overlap_mat, arma::mat& Hcore_mat, arma::mat& p, arma::vec& Ptotal);
+        arma::vec updatePtotal(vector<string> atom_types, vector<BasisFunction> basis_set, arma::mat& densityMat);
+        double calculateNuclearRepulsionEnergy(vector<string> atom_types, AO AO_object);
+        double calculateElectronEnergy(arma::mat& densityMat, arma::mat& Hcore_mat, arma::mat& Fock_mat);
+        void updateDensityMatrix(AO AO_object, std::string output_file_name);
 
 };

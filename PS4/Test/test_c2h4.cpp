@@ -44,6 +44,8 @@ int main() {
     arma::mat Hcore = CNDO_C2H4.computeCoreHamiltonianMatrix(atom_types, basis_set);
     Hcore.print();
 
+    CNDO_C2H4.updateDensityMatrix(C2H4_ao, "myC2H4.txt");
+
     
 
 

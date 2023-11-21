@@ -42,7 +42,13 @@ int main() {
     arma::mat Hcore = CNDO_HF.computeCoreHamiltonianMatrix(atom_types, basis_set);
     Hcore.print();
 
-    
+    cout << "Compute Fock Matrix for H: " << endl;
+    arma::mat density_matrix = arma::zeros(basis_set.size(), basis_set.size());
+    arma::vec Ptotal = arma::zeros(natoms);
+    arma::mat Fock = CNDO_HF.computeFockMatrix(atom_types, basis_set, S, Hcore, density_matrix, Ptotal);
+    Fock.print();
+
+    CNDO_HF.updateDensityMatrix(HF_ao, "myHF+.txt");
 
 
 

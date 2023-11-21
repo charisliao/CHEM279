@@ -29,6 +29,7 @@ using namespace std;
 //constructor
 AO::AO(const char *filename) {
 
+    cout << "import AO object" << endl;
     ifstream infile(filename);
     vector<BasisFunction> basis_set;
     if (!infile.is_open()) {
@@ -76,9 +77,14 @@ AO::AO(const char *filename) {
     
     updateBasisSet(basis_set);
     this->basis_set = basis_set;
+    if (num_electrons % 2 == 0) {
+        p = num_electrons / 2;
+        q = num_electrons / 2;
+    } else {
+        p = (num_electrons + 1) / 2;
+        q = (num_electrons - 1) / 2;
+    }
 
-    
-    
 
     infile.close();
 }
@@ -105,8 +111,35 @@ int AO::get_natoms() {
     return natoms;
 }
 
+arma::mat AO::get_coord() {
+    return coord;
+}
+
+
 vector<string> AO::get_atom_types() {
     return atom_types;
+}
+
+// void AO::updateDensityMatrices(const arma::mat& new_density_alpha, const arma::mat& new_density_beta) {
+//     density_alpha = new_density_alpha;
+//     density_beta = new_density_beta;
+// }
+
+// void AO::updateCoefficientMatrices(const arma::mat& new_coeff_alpha, const arma::mat& new_coeff_beta) {
+//     coefficient_alpha = new_coeff_alpha;
+//     coefficient_beta = new_coeff_beta;
+// }
+
+// void AO::updateTotalVectors(const arma::vec& new_Ptotal) {
+//     Ptotal = new_Ptotal;
+// }
+
+int AO::get_p() {
+    return p;
+}
+
+int AO::get_q() {
+    return q;
 }
 
 
@@ -168,6 +201,9 @@ void AO::updateNormalizationConstants(BasisFunction& basisFunction) {
     // cout << "normalization_constants: " << basisFunction.normalization_constants << endl;
 
 }
+
+
+
 
 void AO::updateBasisSet(vector<BasisFunction>& basis_set) {
     for (int i = 0; i < basis_set.size(); i++) {

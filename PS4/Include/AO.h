@@ -47,6 +47,8 @@ class AO {
     int num_basis;
     int natoms; 
     int ionization;
+    int p;
+    int q;
     arma::mat coord;
     vector<string> atom_types;
     
@@ -68,8 +70,17 @@ class AO {
     AO(const char *filename);
     ~AO();
     int num_electrons;
+    // arma::mat density_alpha;
+    // arma::mat density_beta;
+    // arma::mat coefficient_alpha;
+    // arma::mat coefficient_beta;
+    // arma::vec Ptotal;
     int get_natoms();
     vector<string> get_atom_types();
+    
+    int get_p();
+    int get_q();
+    arma::mat get_coord();
 
     vector<BasisFunction> basis_set;
    
