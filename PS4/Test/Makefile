@@ -27,7 +27,8 @@ ARMADILLO_DIR = /Users/charisliao/Desktop/armadillo-12.6.2
 LDFLAGS = -L/opt/homebrew/opt/veclibfort/lib -lveclibfort
 
 # The next line contains the list of executable files that are created by the Makefile
-EXECUTABLES = test_h test_h2 test_c2h4 test_hf+
+EXECUTABLES = test_h test_h2 test_c2h4 test_hf+ test_n2
+
 
 # The object file for insertion sort. The file is saved in Libdir.
 
@@ -55,7 +56,15 @@ test_c2h4: $(INC_DIR)/AO.h $(INC_DIR)/utils.h $(INC_DIR)/CNDO.h
 	$(LIB_DIR)/AO.a $(LDFLAGS)
 	mv test_c2h4 $(BIN_DIR)
 
+test_n2: $(INC_DIR)/AO.h $(INC_DIR)/utils.h $(INC_DIR)/CNDO.h
+	$(CPP) $(CPPFLAGS) test_n2 test_n2.cpp \
+	-I$(INC_DIR) -I$(ARMADILLO_DIR)/include \
+	$(LIB_DIR)/AO.a $(LDFLAGS)
+	mv test_n2 $(BIN_DIR)
+
 all: $(EXECUTABLES)
 
 cleanall:
-	cd $(BIN_DIR); rm $(EXECUTABLES)
+	cd $(BIN_DIR); rm $(EXECUTABLES) \ 
+	
+	

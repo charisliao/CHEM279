@@ -313,6 +313,7 @@ arma::vec CNDO::updatePtotal(vector<string> atom_types, vector<BasisFunction> ba
     for (int i = 0; i < basis_set.size(); i++) {
         for (int j = 0; j < basis_set.size(); j++) {
             if (i == j && basis_set[i].atom_index == basis_set[j].atom_index) {
+                // std::cout << "i: " << i << " j: " << j << " densityMat(i, j): " << densityMat(i, j) << std::endl;
                 newPtotal(basis_set[i].atom_index) += densityMat(i, j);
             }
         }
@@ -384,9 +385,18 @@ void CNDO::updateDensityMatrix(AO AO_object, std::string output_file_name) {
 
     vector<string> atom_types = AO_object.get_atom_types();
     vector<BasisFunction> basis_set = AO_object.basis_set;
-    arma::mat overlap_mat = overlap_matrix(basis_set);
-    arma::mat Hcore_mat = computeCoreHamiltonianMatrix(atom_types, basis_set);
+    std::cout << "gamma" << std::endl;
+    arma::mat gamma_mat = computeGammaMatrix(atom_types.size(), basis_set);
+    gamma_mat.print();
 
+    std::cout << "Overlap Matrix " << std::endl;
+    arma::mat overlap_mat = overlap_matrix(basis_set);
+    overlap_mat.print();
+
+    std::cout << "Core Hamiltonian Matrix " << std::endl;
+    arma::mat Hcore_mat = computeCoreHamiltonianMatrix(atom_types, basis_set);
+    Hcore_mat.print();
+    
     bool converged = false;
 
     int iteration = 0;

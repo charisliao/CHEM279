@@ -115,6 +115,17 @@ arma::mat AO::get_coord() {
     return coord;
 }
 
+int AO::set_p(int new_p) {
+    p = new_p;
+    return p;
+}
+
+
+int AO::set_q(int new_q) {
+    q = new_q;
+    return q;
+}
+
 
 vector<string> AO::get_atom_types() {
     return atom_types;

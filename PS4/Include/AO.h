@@ -81,6 +81,8 @@ class AO {
     int get_p();
     int get_q();
     arma::mat get_coord();
+    int set_p(int new_p);
+    int set_q(int new_q);
 
     vector<BasisFunction> basis_set;
    
