@@ -223,7 +223,12 @@ arma::mat CNDO::computeCoreHamiltonianMatrix(vector<string> atom_types, vector<B
                 
                 double Beta_A = getBeta(extractElement(basis_set[i].AO_type));
                 double Beta_B = getBeta(extractElement(basis_set[j].AO_type));
-                H(i, j) = computeOffDiagMat(i, j, Beta_A, Beta_B, overlap_mat);
+                double h = computeOffDiagMat(i, j, Beta_A, Beta_B, overlap_mat);
+                // std::cout << "h" << h << std::endl;
+                // if (h <= 1e-15) {
+                //     h = 0.0;
+                // }
+                H(i, j) = h;
             }
         }
     }
@@ -231,7 +236,8 @@ arma::mat CNDO::computeCoreHamiltonianMatrix(vector<string> atom_types, vector<B
 }
  
 double CNDO::offDiagonalFockElement(double BetaA, double BetaB, double overlap, double p, double gammaAB) {
-    return 0.5 * (-BetaA - BetaB) * overlap - p * gammaAB;
+    // std::cout << "BetaA: " << BetaA << " BetaB: " << BetaB << " overlap: " << overlap << " p: " << p << " gammaAB: " << gammaAB << std::endl;
+    return 0.5 * (-BetaA - BetaB) * overlap - p * gammaAB; // COME BACK TO THIS
 }
 
 double CNDO::diagonalFockElement(double IA, double ZA, double gammaAA, double pTotalA, double pMuMu, double pZBgammaAB) {
@@ -285,7 +291,9 @@ arma::mat CNDO::computeFockMatrix(vector<string> atom_types, vector<BasisFunctio
                 double Beta_B = getBeta(extractElement(basis_set[j].AO_type));
                 double overlap = overlap_mat(i, j);
                 double density = p(i, j);
-                double gammaAB = gamma(basis_set[i], basis_set[j]);
+                BasisFunction basisFunctionA = basis_map[basis_set[i].atom_index];
+                BasisFunction basisFunctionB = basis_map[basis_set[j].atom_index];
+                double gammaAB = gamma(basisFunctionA, basisFunctionB);
                 F(i, j) = offDiagonalFockElement(Beta_A, Beta_B, overlap, density, gammaAB);
             }
         }
@@ -403,6 +411,12 @@ void CNDO::updateDensityMatrix(AO AO_object, std::string output_file_name) {
     while (converged != true) {
         std::cout << "Iteration: " << iteration << std::endl;
 
+        // std::cout << "Density Matrix for Alpha before computing Fock: " << std::endl;
+        // densityAlpha.print();
+
+        // std::cout << "Density Matrix for Beta before computing Fock: " << std::endl;
+        // densityBeta.print();
+
         std::cout << "Fock Matrix for Alpha: " << std::endl;
         FockAlpha = computeFockMatrix(atom_types, basis_set, overlap_mat, Hcore_mat, densityAlpha, pTotal);
         FockAlpha.print();
@@ -482,9 +496,6 @@ void CNDO::updateDensityMatrix(AO AO_object, std::string output_file_name) {
                 std::cout << "Total Energy: " << electron_energy + nuclear_repulsion_energy << "eV" << std::endl;
 
         }
-
-        
-
         iteration++;
     }
     // Redirect cout back to the console

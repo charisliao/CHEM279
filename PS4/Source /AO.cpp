@@ -291,7 +291,15 @@ arma::mat overlap_matrix(vector<BasisFunction>& basis_set) {
             // cout << "inside overlap matrix call overlap integral" << endl;
             // cout << "basis_set[i]: " << basis_set[i].normalization_constants<< endl;
             // cout << "basis_set[j]: " << basis_set[j].normalization_constants << endl;
-            S(i, j) = overlapIntegral(basis_set[i], basis_set[j]);
+            double temp; 
+            // range test if 
+            if (abs(overlapIntegral(basis_set[i], basis_set[j])) < 1e-15) {
+                temp = 0.0;
+            } else {
+                temp = overlapIntegral(basis_set[i], basis_set[j]);
+            }
+            
+            S(i, j) = temp;
             // cout << "inside overlap matrix call overlap integral. DONE!" << endl;
         }
     }

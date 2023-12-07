@@ -1,3 +1,12 @@
+gamma
+   21.0781   15.4490
+   15.4490   21.0781
+Overlap Matrix 
+   1.0000   0.6559
+   0.6559   1.0000
+Core Hamiltonian Matrix 
+  -33.1641   -5.9035
+   -5.9035  -33.1641
 Iteration: 0
 Fock Matrix for Alpha: 
   -33.1641   -5.9035
@@ -22,8 +31,6 @@ Density Matrix for Beta:
 Total Density Matrix: 
    1.0000   1.0000
    1.0000   1.0000
-i: 0 j: 0 densityMat(i, j): 1
-i: 1 j: 1 densityMat(i, j): 1
 Total Density Vector
    1.0000
    1.0000
@@ -51,8 +58,6 @@ Density Matrix for Beta:
 Total Density Matrix: 
    1.0000   1.0000
    1.0000   1.0000
-i: 0 j: 0 densityMat(i, j): 1
-i: 1 j: 1 densityMat(i, j): 1
 Total Density Vector
    1.0000
    1.0000
