@@ -9,7 +9,7 @@
 CPP = g++      # C++ Compiler
 
 # Compiler flags -g for debug, -o for creating an executable file
-CPPFLAGS = -g -std=c++11 -pg -o  # Added -pg for profiling
+CPPFLAGS = -g -std=c++17 -pg -Xclang -fopenmp -o # Added -pg for profiling
 
 # The directory where the include files needed to create the library objects are
 INC_DIR = ../Include
@@ -24,7 +24,9 @@ BIN_DIR = ../Bindir
 ARMADILLO_DIR = /Users/charisliao/Desktop/armadillo-12.6.2
 
 # Additional linker flags
-LDFLAGS = -L/opt/homebrew/opt/veclibfort/lib -lveclibfort
+LDFLAGS = -L/opt/homebrew/opt/veclibfort/lib -lveclibfort 
+
+LDFLAGS += -L/opt/homebrew/opt/libomp/lib -I/opt/homebrew/opt/libomp/include -lomp
 
 # The next line contains the list of executable files that are created by the Makefile
 EXECUTABLES = test_h test_h2 test_c2h4 test_hf+ test_n2 test_ot test_modified_runtime generate_molecules
@@ -72,7 +74,7 @@ test_ot: $(INC_DIR)/AO.h $(INC_DIR)/utils.h $(INC_DIR)/CNDO.h
 test_modified_runtime: $(INC_DIR)/AO.h $(INC_DIR)/utils.h $(INC_DIR)/CNDO.h
 	$(CPP) $(CPPFLAGS) test_modified_runtime test_modified_runtime.cpp \
 	-I$(INC_DIR) -I$(ARMADILLO_DIR)/include \
-	$(LIB_DIR)/AO.a $(LDFLAGS)
+	$(LIB_DIR)/AO.a $(LDFLAGS) 
 	mv test_modified_runtime $(BIN_DIR)
 
 generate_molecules: $(INC_DIR)/AO.h $(INC_DIR)/utils.h $(INC_DIR)/CNDO.h

@@ -7,11 +7,12 @@
 # GNU C++ Compiler
 CPP = g++  # C++ Compiler
 
-# compiler flags -g debug, -c creates a library object
-CPPFLAGS = -g -c -std=c++11 -pg  # Added -pg for profiling
+# Update CPPFLAGS to include -std=c++11
+CPPFLAGS = -g -c -std=c++11 -pg
 
-# linker flags for profiling
-LDFLAGS = -pg  # Added -pg for profiling
+# Update LDFLAGS to include -fopenmp
+LDFLAGS = -pg -fopenmp
+
 
 # The directory where the include files needed to create the library objects are
 INC_DIR = ../Include
@@ -41,7 +42,7 @@ utils.o: $(INC_DIR)/utils.h
 	$(CPP) $(CPPFLAGS) utils.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
 
 cndo.o: $(INC_DIR)/CNDO.h $(INC_DIR)/AO.h $(INC_DIR)/utils.h
-	$(CPP) $(CPPFLAGS) CNDO.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
+	clang -Xclang -fopenmp -L/opt/homebrew/opt/libomp/lib -I/opt/homebrew/opt/libomp/include -lomp -o cndo.o -c cndo.cpp -std=c++11 -I$(INC_DIR) -I$(ARMADILLO_DIR)/include
 
 hamiltonian.o: $(INC_DIR)/hamiltonian.h $(INC_DIR)/AO.h $(INC_DIR)/utils.h
 	$(CPP) $(CPPFLAGS) hamiltonian.cpp -I$(INC_DIR) -I$(ARMADILLO_DIR)/include

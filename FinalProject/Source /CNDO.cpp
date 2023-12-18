@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iomanip>
+#include <omp.h>
 #include "AO.h"
 #include "util.h"
 #include "CNDO.h"
@@ -215,19 +217,16 @@ arma::mat CNDO::computeCoreHamiltonianMatrix(vector<string> atom_types, vector<B
                         ZB_gamma_AB += ZB * gammaAB;
                     }
                 }
-                // cout << "ZB_gamma_AB: " << ZB_gamma_AB << endl;
+                
                 H(i, j) = diagCoreH(gammaAA, basis_set[i], ZB_gamma_AB);
-                // cout << "Current atom index: " << atom_index <<  " Current atom type: " << atom_types[atom_index] << endl;
+                
                 
             } else {
                 
                 double Beta_A = getBeta(extractElement(basis_set[i].AO_type));
                 double Beta_B = getBeta(extractElement(basis_set[j].AO_type));
                 double h = computeOffDiagMat(i, j, Beta_A, Beta_B, overlap_mat);
-                // std::cout << "h" << h << std::endl;
-                // if (h <= 1e-15) {
-                //     h = 0.0;
-                // }
+            
                 H(i, j) = h;
             }
         }
@@ -652,15 +651,12 @@ arma::mat CNDO::computeFockMatrixOptimized(std::map<int, BasisFunction> basis_ma
 
 arma::mat CNDO::updateDensityMatrixOptimized(std::map<int, BasisFunction> basis_map, AO AO_object, arma::mat overlap_mat, arma::mat Hcore_mat, arma::mat gamma_mat, vector<string> atom_types, vector<BasisFunction> basis_set) {
     
-
-
     // std::cout << "State Updating Density Matrix" << std::endl;
     arma::mat densityAlpha = arma::zeros(AO_object.basis_set.size(), AO_object.basis_set.size());
     arma::mat densityBeta = arma::zeros(AO_object.basis_set.size(), AO_object.basis_set.size());
     arma::mat coefficientAlpha;
     arma::mat coefficientBeta;
     arma::vec pTotal = arma::zeros(AO_object.get_natoms());
-
 
     arma::mat totalDensityMat; 
     //initialize eigan values for alpha and beta
@@ -669,95 +665,94 @@ arma::mat CNDO::updateDensityMatrixOptimized(std::map<int, BasisFunction> basis_
     arma::mat FockAlpha;
     arma::mat FockBeta;
 
-
     int p = AO_object.get_p();
     int q = AO_object.get_q();
-
     
     bool converged = false;
 
     int iteration = 0;
     while (converged != true) {
-        // std::cout << "Iteration: " << iteration << std::endl;
+        
+        #pragma omp parallel
+        {
+            int numThreads = omp_get_num_threads();
+            // std::cout << "Number of threads for updateDensityMatrixOptimized: " << numThreads << std::endl;
 
-        // std::cout << "Fock Matrix for Alpha: " << std::endl;
-        FockAlpha = computeFockMatrixOptimized(basis_map, atom_types, basis_set, overlap_mat, Hcore_mat, densityAlpha, pTotal);
-        // FockAlpha.print();
+            // Set the desired number of threads
+            omp_set_num_threads(numThreads);
 
-        // std::cout << "Fock Matrix for Beta: " << std::endl;
-        FockBeta = computeFockMatrixOptimized(basis_map, atom_types, basis_set, overlap_mat, Hcore_mat, densityBeta, pTotal);
-        // FockBeta.print();
-
-        // solve eigan value problem for alpha and beta
-        arma::eig_sym(epsilonAlpha, coefficientAlpha, FockAlpha);
-        arma::eig_sym(epsilonBeta, coefficientBeta, FockBeta);
-        // std::cout << "after solving eigen quation: " << iteration << std::endl;
-
-        // std::cout << "MO Coefficient Matrix for Alpha: " << std::endl;
-        // // coefficientAlpha.print();
-
-        // std::cout << "MO Coefficient Matrix for Beta: " << std::endl;
-        // // coefficientBeta.print();
-
-        // std::cout << "p: " << p << " q: " << q << std::endl;
-
-        // copy old density matrix to new density matrix
-        arma::mat densityAlpha_old = densityAlpha;
-        arma::mat densityBeta_old = densityBeta;
-
-        // build new density matrix
-        densityAlpha = arma::zeros(densityAlpha.n_rows, densityAlpha.n_cols);
-        densityBeta = arma::zeros(densityBeta.n_rows, densityBeta.n_cols);
-
-        for (int i = 0; i < densityAlpha.n_rows; i++) {
-            for (int j = 0; j < densityAlpha.n_cols; j++) {
-                // densityAlpha(i, j) = 0.0
-                // densityBeta(i, j) = 0.0;
-                for (int k = 0; k < p; k++) {
-                    densityAlpha(i, j) += coefficientAlpha(i, k) * coefficientAlpha(j, k);
+            #pragma omp sections
+            {
+                #pragma omp section
+                {
+                    FockAlpha = computeFockMatrixOptimized(basis_map, atom_types, basis_set, overlap_mat, Hcore_mat, densityAlpha, pTotal);
                 }
-                for (int k = 0; k < q; k++) {
-                    densityBeta(i, j) += coefficientBeta(i, k) * coefficientBeta(j, k);
+                #pragma omp section
+                {
+                    FockBeta = computeFockMatrixOptimized(basis_map, atom_types, basis_set, overlap_mat, Hcore_mat, densityBeta, pTotal);
                 }
-                
             }
-        }
 
-        // std::cout << "Density Matrix for Alpha: " << std::endl;
-        // densityAlpha.print();
+            #pragma omp parallel sections
+            {
+                #pragma omp section
+                {
+                    arma::eig_sym(epsilonAlpha, coefficientAlpha, FockAlpha);
+                }
+                #pragma omp section
+                {
+                    arma::eig_sym(epsilonBeta, coefficientBeta, FockBeta);
+                }
+            }
 
-        // std::cout << "Density Matrix for Beta: " << std::endl;
-        // densityBeta.print();
+            arma::mat densityAlpha_old = densityAlpha;
+            arma::mat densityBeta_old = densityBeta;
 
-        totalDensityMat = densityAlpha + densityBeta;
-        // std::cout << "Total Density Matrix: " << std::endl;
-        // totalDensityMat.print();
+            densityAlpha = arma::zeros(densityAlpha.n_rows, densityAlpha.n_cols);
+            densityBeta = arma::zeros(densityBeta.n_rows, densityBeta.n_cols);
 
-        pTotal = updatePtotal(atom_types, basis_set, totalDensityMat);
-        std::cout << "Total Density Vector" << std::endl;
-        // pTotal.print();
+            #pragma omp parallel for collapse(2)
+            for (int i = 0; i < densityAlpha.n_rows; i++) {
+                for (int j = 0; j < densityAlpha.n_cols; j++) {
+                    for (int k = 0; k < p; k++) {
+                        #pragma omp atomic
+                        densityAlpha(i, j) += coefficientAlpha(i, k) * coefficientAlpha(j, k);
+                    }
+                    for (int k = 0; k < q; k++) {
+                        #pragma omp atomic
+                        densityBeta(i, j) += coefficientBeta(i, k) * coefficientBeta(j, k);
+                    }      
+                }
+            }
 
-        // / 5) Check for convergence (tolerance = 1e-6)
-        if (abs(densityAlpha - densityAlpha_old).max() < 1e-6 && \
-            abs(densityBeta - densityBeta_old).max() < 1e-6) {
-                // std::cout << "Converged!" << std::endl;
-                converged = true;
-                // std::cout << "Ea" << std::endl;
-                // epsilonAlpha.print();
-                // std::cout << "Eb" << std::endl;
-                // epsilonBeta.print();
-                // std::cout << "Ca" << std::endl;
-                // coefficientAlpha.print();
-                // std::cout << "Cb" << std::endl;
-                // coefficientBeta.print();
+            totalDensityMat = densityAlpha + densityBeta;
 
-                double nuclear_repulsion_energy = calculateNuclearRepulsionEnergy(atom_types, AO_object);
-                // std::cout << "Nuclear Repulsion Energy: " << nuclear_repulsion_energy << "eV" << std::endl;
-                double electron_energy = calculateElectronEnergy(densityAlpha, Hcore_mat, FockAlpha);
-                electron_energy += calculateElectronEnergy(densityBeta, Hcore_mat, FockBeta);
-                // std::cout << "Electron Energy: " << electron_energy << "eV" << std::endl;
-                // std::cout << "Total Energy: " << electron_energy + nuclear_repulsion_energy << "eV" << std::endl;
+            pTotal = updatePtotal(atom_types, basis_set, totalDensityMat);
 
+  
+
+            // 5) Check for convergence (tolerance = 1e-6)
+            if (abs(densityAlpha - densityAlpha_old).max() < 1e-6 && \
+                abs(densityBeta - densityBeta_old).max() < 1e-6) {
+                    // std::cout << "Converged!" << std::endl;
+                    converged = true;
+                    // std::cout << "Ea" << std::endl;
+                    // epsilonAlpha.print();
+                    // std::cout << "Eb" << std::endl;
+                    // epsilonBeta.print();
+                    // std::cout << "Ca" << std::endl;
+                    // coefficientAlpha.print();
+                    // std::cout << "Cb" << std::endl;
+                    // coefficientBeta.print();
+
+                    double nuclear_repulsion_energy = calculateNuclearRepulsionEnergy(atom_types, AO_object);
+                    // std::cout << "Nuclear Repulsion Energy: " << nuclear_repulsion_energy << "eV" << std::endl;
+                    double electron_energy = calculateElectronEnergy(densityAlpha, Hcore_mat, FockAlpha);
+                    electron_energy += calculateElectronEnergy(densityBeta, Hcore_mat, FockBeta);
+                    // std::cout << "Electron Energy: " << electron_energy << "eV" << std::endl;
+                    // std::cout << "Total Energy: " << electron_energy + nuclear_repulsion_energy << "eV" << std::endl;
+
+            }
         }
         iteration++;
     }

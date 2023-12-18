@@ -1,5 +1,0 @@
-Compute Overlap Matrix (S): 0 milliseconds.
-Compute Core Hamiltonian Matrix (H): 0 milliseconds.
-Compute Gamma Matrix: 0 milliseconds.
-Compute Fock Matrix (F): 0 milliseconds.
-Update Density Matrix (P): 0 milliseconds.

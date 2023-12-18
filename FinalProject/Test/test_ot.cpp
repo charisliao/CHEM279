@@ -4,17 +4,24 @@
 #include <armadillo>
 #include <functional>
 #include <chrono>
+#include <filesystem>  // Include filesystem header for directory traversal
+#include <algorithm>   // Include algorithm header for sorting
 #include "AO.h"
 #include "utils.h"
 #include "CNDO.h"
 
 using namespace std;
+namespace fs = std::filesystem;
 
-
+// Function to extract the numeric part of the filename
+int extractNumber(const std::string& fileName) {
+    size_t found = fileName.find_first_of("0123456789");
+    return std::stoi(fileName.substr(found));
+}
 
 int main() {
-    // File names
-    vector<string> fileNames = {"H.txt", "C2H4.txt", "C50H50.txt", "C250H250.txt", "C500H500.txt"};
+    // Directory containing molecule files
+    const std::string moleculesDir = "molecules";
 
     // Open the output file
     std::ofstream outputFile("output.txt");
@@ -23,13 +30,42 @@ int main() {
         return 1;
     }
 
-    for (const auto& fileName : fileNames) {
+    // Vector to store sorted file entries
+    std::vector<std::pair<std::string, int>> sortedEntries;
+
+    for (const auto& entry : fs::directory_iterator(moleculesDir)) {
+        const std::string fileName = entry.path().filename().string();
+
+        // Skip non-text files
+        if (fileName.find(".txt") == std::string::npos)
+            continue;
+
+        // Extract the numeric part of the filename
+        int fileNumber = extractNumber(fileName);
+
+        // Add to the vector for sorting
+        sortedEntries.emplace_back(fileName, fileNumber);
+    }
+
+    // Sort the entries based on the numeric part
+    std::sort(sortedEntries.begin(), sortedEntries.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
+
+    // Process files in sorted order
+    for (const auto& entry : sortedEntries) {
+        const std::string fileName = entry.first;
+        const std::string filePath = moleculesDir + "/" + fileName;
+
         // Read in file
-        AO ao(fileName);
+        AO ao(filePath);
 
         //compute gamma and hcore matrices
         CNDO cndo;
         int natoms = ao.get_natoms();
+        // Output number of atoms to the console
+        std::cout << "Number of atoms in " << fileName << ": " << ao.get_natoms() << std::endl;
+
         vector<string> atom_types = ao.get_atom_types();
         vector<BasisFunction> basis_set = ao.basis_set;
         arma::mat gamma = cndo.computeGammaMatrix(natoms, ao.basis_set);
@@ -70,11 +106,8 @@ int main() {
             cndo.updateDensityMatrix(ao, "testTime.txt");
         }, "Update Density Matrix (P)");
 
-        outputFile << fileName << ":" << std::endl;
-
-        outputFile << durationS << " " << durationH << " " << durationGamma << " " << durationF << " " << durationP << std::endl;
-
-    
+        std::cout << fileName << " processed." << std::endl;
+        outputFile << ao.get_natoms() << " " << durationS << " " << durationH << " " << durationGamma << " " << durationF << " " << durationP << std::endl;
     }
 
     outputFile.close();

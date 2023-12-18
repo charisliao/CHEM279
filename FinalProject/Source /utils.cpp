@@ -7,6 +7,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
+#include <filesystem>
 
 
 
@@ -85,7 +87,7 @@ double measureExecutionTime(const std::function<void()>& func, const std::string
     return static_cast<double>(duration);
 }
 
-void generateMoleculeFile(int num_C, int num_H, const std::string& filename) {
+void generateMoleculeFile(int num_C, const std::string& filename) {
     std::ofstream outputFile(filename);
     if (!outputFile.is_open()) {
         std::cerr << "Error: Unable to open file " << filename << " for writing." << std::endl;
@@ -99,8 +101,12 @@ void generateMoleculeFile(int num_C, int num_H, const std::string& filename) {
         molecule.push_back("C    " + std::to_string(1.5 * i) + "    0.000    0.0");
     }
 
+    // Calculate num_H based on the formula (2 * num_C + 2)
+    int num_H = 2 * num_C + 2;
+
     // Add H atoms
     for (int i = 0; i < num_H; ++i) {
+        // Set the distance between C and H atoms as 1.0
         molecule.push_back("H    " + std::to_string(1.5 * num_C + 1.0 * i) + "    0.000    0.0");
     }
 

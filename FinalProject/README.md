@@ -5,6 +5,8 @@ This README file will serve as a guide to the repository and the project.
 ## Repository Structure
 The repository is organized as follows:
 - `Bindir`: Contains the executable files for the CNDO/2 code and the input files for the CNDO/2 code. 
+    - Please run `./generate_molecules` before you run any other executables. 
+    - executables like `./test_h`, `./test_c2h4` are preserved to ensure the correctness of the optimized function code. 
 - `Include`: Contains the header files for the CNDO/2 code.
 - `Libdir`: Contains the library files for the CNDO/2 code.
 - `Source`: Contains the source files for the CNDO/2 code.
@@ -43,4 +45,15 @@ Compilers can apply various optimizations, and compiling with different optimiza
 Demonstrate the effectiveness of your optimizations by testing the code on molecules of increasing size, ranging up to 1000 atoms.
 
 
+#### Further Modificaiton After Presentation
+- I implemented OpenMP to parallelize the code. 
+- I modified my generate_molecules code so that the molecules generated follow C:n and H:2n+2.
+    - all files generated will be stored in the molecule directory once `./generate_molecules` is executed. 
+
+#### Challenges 
+- After several attempts, I was still unable to link OpenBLAS to armadillo and use it to optimize the linear algebra part of the code. 
+
+#### Takeaways
+- The model of the laptop using is extremely important in terms of the performance of the code as well as the compatibility of libraries. 
+- Using OpenMP to parallelize the code could be a good way to improve the performance of the code; however, it is important to prevent race conditions when multiple threads are updating the same variable simultaneously.
 

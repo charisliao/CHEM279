@@ -3,12 +3,25 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
+#include <filesystem>
 #include "utils.h"
 
 
+void generateMoleculeFiles(const std::string& folderPath) {
+    // Create the folder if it doesn't exist
+    std::filesystem::create_directories(folderPath);
+
+    for (int numAtoms = 1; numAtoms <= 335; ++numAtoms) {
+        std::ostringstream filenameStream;
+        filenameStream << folderPath << "/" << numAtoms << ".txt";
+        std::string filename = filenameStream.str();
+
+        generateMoleculeFile(numAtoms, filename);
+    }
+}
+
 int main(){
-    generateMoleculeFile(50, 50, "C50H50.txt");
-    generateMoleculeFile(250, 250, "C250H250.txt");
-    generateMoleculeFile(500, 500, "C500H500.txt");
+    generateMoleculeFiles("molecules");
     return 0;
 }
