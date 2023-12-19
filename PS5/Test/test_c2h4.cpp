@@ -46,16 +46,16 @@ int main() {
     // Hcore.print();
 
     CNDO_C2H4.updateDensityMatrix(C2H4_ao, "totalDensity");
-    arma::field<arma::vec> S_deriv = overlapMatrix_derivative(basis_set);
+    arma::mat S_deriv = overlapMatrix_derivative(basis_set);
 
     // Print the combined matrix
    
     cout << "OV_RA" << endl;
-    printField(S_deriv);
+    S_deriv.print();
 
-    cout << "Gamma_RA" << endl;
-    arma::field<arma::vec> gamma_deriv = CNDO_C2H4.createGammaDerivativeMat(basis_map);
-    printField(gamma_deriv);
+    // cout << "Gamma_RA" << endl;
+    // arma::field<arma::vec> gamma_deriv = CNDO_C2H4.createGammaDerivativeMat(basis_map);
+    // printField(gamma_deriv);
 
     
 

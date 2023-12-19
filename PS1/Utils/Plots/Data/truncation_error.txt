@@ -1,5 +1,0 @@
-0.1, 0.01, 0.001, 0.0001
-Truncation error for forward difference approximation for test case 1: 
-0.119296, 0.01186, 0.00118563, 0.000118559, 
-Truncation error for central difference approximation for test case 1: 
-0.171209, 0.0166817, 0.00166482, 0.000166449, 

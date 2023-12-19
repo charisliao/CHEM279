@@ -498,7 +498,7 @@ arma::mat CNDO::createMatY(vector<BasisFunction> basis_set, std::map<int, BasisF
 }
 
 arma::rowvec CNDO::zeroToZero(BasisFunction& basisFunction1, BasisFunction& basisFunction2, double sigmaA, double sigmaB) {
-    arma::rowvec result = {0,0,0};
+    arma::rowvec result(3, arma::fill::zeros);
 
     double distance = norm(basisFunction1.center - basisFunction2.center);
     double v_2 = 1.0 / (sigmaA + sigmaB);

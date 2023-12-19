@@ -94,7 +94,8 @@ double overlap_integral_3D(arma::rowvec center1, arma::rowvec center2, double al
 double unnormOverlapIntegral(BasisFunction& basisFunction1, BasisFunction& basisFunction2, int i, int j);
 double overlapIntegral(BasisFunction& basisFunction1, BasisFunction& basisFunction2);
 arma::mat overlap_matrix(vector<BasisFunction>& basis_set);
-double derivative_OV(int dim, BasisFunction& basisFunction1, BasisFunction& basisFunction2);
+double derivative_OV_1D(double center1, double center2, double alpha1, double alpha2, int l1, int l2);
+arma::vec derivative_OV_3D(arma::rowvec centers_a, arma::rowvec centers_b, double alpha, double alpha1, arma::vec lmnA, arma::vec lmnB);
 arma::vec contractedOV_derivative(BasisFunction basisFunction1, BasisFunction basisFunction2);
-arma::field<arma::vec> overlapMatrix_derivative(vector<BasisFunction>& basis_set);
+arma::mat overlapMatrix_derivative(vector<BasisFunction>& basis_set);
 
