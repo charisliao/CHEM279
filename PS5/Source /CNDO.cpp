@@ -285,7 +285,9 @@ arma::mat CNDO::computeFockMatrix(vector<string> atom_types, vector<BasisFunctio
                 double Beta_B = getBeta(extractElement(basis_set[j].AO_type));
                 double overlap = overlap_mat(i, j);
                 double density = p(i, j);
-                double gammaAB = gamma(basis_set[i], basis_set[j]);
+                BasisFunction basisFunctionA = basis_map[basis_set[i].atom_index];
+                BasisFunction basisFunctionB = basis_map[basis_set[j].atom_index];
+                double gammaAB = gamma(basisFunctionA, basisFunctionB);
                 F(i, j) = offDiagonalFockElement(Beta_A, Beta_B, overlap, density, gammaAB);
             }
         }
@@ -354,17 +356,7 @@ double CNDO::calculateElectronEnergy(arma::mat& densityMat, arma::mat& Hcore_mat
     return 0.5 * electron_energy;
 }
 
-std::pair<arma::mat, arma::mat> CNDO::updateDensityMatrix(AO AO_object, std::string output_file_name) {
-    std::ofstream outputFile(output_file_name);
-    if (!outputFile.is_open()) {
-        std::cerr << "Error: Unable to open output file " << output_file_name << std::endl;
-        return;
-    }
-    // Redirect cout to the output file
-    std::streambuf* coutBuffer = std::cout.rdbuf();
-    std::cout.rdbuf(outputFile.rdbuf());
-
-    // std::cout << "State Updating Density Matrix" << std::endl;
+arma::mat CNDO::updateDensityMatrix(AO AO_object, std::string returnType) {
     arma::mat densityAlpha = arma::zeros(AO_object.basis_set.size(), AO_object.basis_set.size());
     arma::mat densityBeta = arma::zeros(AO_object.basis_set.size(), AO_object.basis_set.size());
     arma::mat coefficientAlpha;
@@ -385,44 +377,22 @@ std::pair<arma::mat, arma::mat> CNDO::updateDensityMatrix(AO AO_object, std::str
 
     vector<string> atom_types = AO_object.get_atom_types();
     vector<BasisFunction> basis_set = AO_object.basis_set;
-    std::cout << "gamma" << std::endl;
     arma::mat gamma_mat = computeGammaMatrix(atom_types.size(), basis_set);
-    gamma_mat.print();
-
-    std::cout << "Overlap Matrix " << std::endl;
     arma::mat overlap_mat = overlap_matrix(basis_set);
-    overlap_mat.print();
-
-    std::cout << "Core Hamiltonian Matrix " << std::endl;
     arma::mat Hcore_mat = computeCoreHamiltonianMatrix(atom_types, basis_set);
-    Hcore_mat.print();
+
     
     bool converged = false;
 
     int iteration = 0;
     while (converged != true) {
-        std::cout << "Iteration: " << iteration << std::endl;
-
-        std::cout << "Fock Matrix for Alpha: " << std::endl;
         FockAlpha = computeFockMatrix(atom_types, basis_set, overlap_mat, Hcore_mat, densityAlpha, pTotal);
-        FockAlpha.print();
 
-        std::cout << "Fock Matrix for Beta: " << std::endl;
         FockBeta = computeFockMatrix(atom_types, basis_set, overlap_mat, Hcore_mat, densityBeta, pTotal);
-        FockBeta.print();
 
         // solve eigan value problem for alpha and beta
         arma::eig_sym(epsilonAlpha, coefficientAlpha, FockAlpha);
         arma::eig_sym(epsilonBeta, coefficientBeta, FockBeta);
-        std::cout << "after solving eigen quation: " << iteration << std::endl;
-
-        std::cout << "MO Coefficient Matrix for Alpha: " << std::endl;
-        coefficientAlpha.print();
-
-        std::cout << "MO Coefficient Matrix for Beta: " << std::endl;
-        coefficientBeta.print();
-
-        std::cout << "p: " << p << " q: " << q << std::endl;
 
         // copy old density matrix to new density matrix
         arma::mat densityAlpha_old = densityAlpha;
@@ -434,8 +404,7 @@ std::pair<arma::mat, arma::mat> CNDO::updateDensityMatrix(AO AO_object, std::str
 
         for (int i = 0; i < densityAlpha.n_rows; i++) {
             for (int j = 0; j < densityAlpha.n_cols; j++) {
-                // densityAlpha(i, j) = 0.0
-                // densityBeta(i, j) = 0.0;
+                
                 for (int k = 0; k < p; k++) {
                     densityAlpha(i, j) += coefficientAlpha(i, k) * coefficientAlpha(j, k);
                 }
@@ -446,34 +415,15 @@ std::pair<arma::mat, arma::mat> CNDO::updateDensityMatrix(AO AO_object, std::str
             }
         }
 
-        std::cout << "Density Matrix for Alpha: " << std::endl;
-        densityAlpha.print();
-
-        std::cout << "Density Matrix for Beta: " << std::endl;
-        densityBeta.print();
-
         totalDensityMat = densityAlpha + densityBeta;
-        std::cout << "Total Density Matrix: " << std::endl;
-        totalDensityMat.print();
-
         pTotal = updatePtotal(atom_types, basis_set, totalDensityMat);
-        std::cout << "Total Density Vector" << std::endl;
-        pTotal.print();
 
-        // / 5) Check for convergence (tolerance = 1e-6)
+        // 5) Check for convergence (tolerance = 1e-6)
         if (abs(densityAlpha - densityAlpha_old).max() < 1e-6 && \
             abs(densityBeta - densityBeta_old).max() < 1e-6) {
-                std::cout << "Converged!" << std::endl;
-                converged = true;
-                std::cout << "Ea" << std::endl;
-                epsilonAlpha.print();
-                std::cout << "Eb" << std::endl;
-                epsilonBeta.print();
-                std::cout << "Ca" << std::endl;
-                coefficientAlpha.print();
-                std::cout << "Cb" << std::endl;
-                coefficientBeta.print();
 
+                converged = true;
+                
                 double nuclear_repulsion_energy = calculateNuclearRepulsionEnergy(atom_types, AO_object);
                 std::cout << "Nuclear Repulsion Energy: " << nuclear_repulsion_energy << "eV" << std::endl;
                 double electron_energy = calculateElectronEnergy(densityAlpha, Hcore_mat, FockAlpha);
@@ -487,12 +437,24 @@ std::pair<arma::mat, arma::mat> CNDO::updateDensityMatrix(AO AO_object, std::str
 
         iteration++;
     }
-    // Redirect cout back to the console
-    std::cout.rdbuf(coutBuffer);
+    // // Redirect cout back to the console
+    // std::cout.rdbuf(coutBuffer);
 
-    // Close the output file
-    outputFile.close();
-    return std::make_pair(densityAlpha, densityBeta);
+    // // Close the output file
+    // outputFile.close();
+
+    if(returnType == "densityAlpha") {
+        return densityAlpha;
+    } else if (returnType == "densityBeta") {
+        return densityBeta;
+    } else if (returnType == "FockAlpha") {
+        return FockAlpha;
+    } else if (returnType == "FockBeta") {
+        return FockBeta; 
+    } else {
+        return totalDensityMat;
+    }
+    
 }
 
 // BELOW STARTS FUNCTION IMPLEMENTATIONS FOR PS5 
@@ -509,15 +471,98 @@ arma::mat CNDO::createMatX(vector<BasisFunction> basis_set, arma::mat& totalDens
     return X;
 }
 
-arma::mat createMatY(arma::vec TotalDensityVec, arma::mat& densityAlpha, arma::mat& densityBeta) {
+
+
+arma::mat CNDO::createMatY(vector<BasisFunction> basis_set, std::map<int, BasisFunction> basis_map, arma::vec TotalDensityVec, arma::mat& densityAlpha, arma::mat& densityBeta) {
     arma::mat Y = arma::zeros(TotalDensityVec.size(), TotalDensityVec.size());
+    int ZA; 
+    int ZB;
     for (int i = 0; i < TotalDensityVec.size(); i++) {
         for (int j = 0; j < TotalDensityVec.size(); j++) {
-            Y(i, j) = TotalDensityVec(i) * (densityAlpha(i, j) + densityBeta(i, j));
+            ZA = basis_map[i].valence_e;
+            ZB = basis_map[j].valence_e;
+            double sumAB = 0.0; 
+            for (int mu = 0; mu < basis_set.size(); mu++) {
+                for (int nu = 0; nu < basis_set.size(); nu++) {
+                    if (basis_set[mu].atom_index == i && basis_set[nu].atom_index == j) {
+                        sumAB += densityAlpha(mu, nu) + densityBeta(mu, nu);
+                    }
+                }
+            }
+            
+            
+            Y(i, j) = TotalDensityVec(i) * TotalDensityVec(j) - ZB * TotalDensityVec(i) - ZA * TotalDensityVec(j) - sumAB;
         }
     }
     return Y;
 }
+
+arma::rowvec CNDO::zeroToZero(BasisFunction& basisFunction1, BasisFunction& basisFunction2, double sigmaA, double sigmaB) {
+    arma::rowvec result = {0,0,0};
+
+    double distance = norm(basisFunction1.center - basisFunction2.center);
+    double v_2 = 1.0 / (sigmaA + sigmaB);
+    double srT = sqrt(v_2) * distance;
+    double T = pow(srT, 2);
+    double uAB = pow(M_PI * sigmaA, 1.5) * pow(M_PI * sigmaB, 1.5);
+
+    std::cout << "distance: " << distance << std::endl;
+    if (distance != 0) {
+        double factor = (2 * sqrt(v_2) * exp(-T)) / sqrt(M_PI) - erf(srT) / distance;
+        std::cout << "factor: " << factor << std::endl;
+        result = uAB * (1.0 / pow(distance, 2)) * ((2 * sqrt(v_2) * exp(-T)) / sqrt(M_PI) - erf(srT) / distance) * (basisFunction1.center - basisFunction2.center);
+        std::cout << "result in if: " << result << std::endl;
+    }
+    std::cout << "result: " << result << std::endl;
+
+    return result * 27.2114;
+}
+
+arma::vec CNDO::gammaDerivative(BasisFunction basisFunction1, BasisFunction basisFunction2) {
+    arma::vec coeffA = arma::zeros(3);
+    arma::vec coeffB = arma::zeros(3);
+    arma::vec alphaA = basisFunction1.exponents;
+    arma::vec alphaB = basisFunction2.exponents;
+    arma::vec result = arma::zeros(3);
+
+    for (int i = 0; i < 3; i++) {
+        coeffA(i) = basisFunction1.contracted_coefficients(i) * basisFunction1.normalization_constants(i);
+        coeffB(i) = basisFunction2.contracted_coefficients(i) * basisFunction2.normalization_constants(i);
+    }
+    // std::cout << "coeffA: " << coeffA << std::endl;
+    // std::cout << "coeffB: " << coeffB << std::endl;
+
+    for (int j = 0; j < 3; j++) {
+        for (int k = 0; k < 3; k++) {
+            double sigmaA = 1.0 / (alphaA(j) + alphaA(k));
+            // std::cout << "sigmaA: " << sigmaA << std::endl;
+
+            for (int l = 0; l < 3; l++) {
+                for (int m = 0; m < 3; m++) {
+                    double sigmaB = 1.0 / (alphaB(l) + alphaB(m));
+                    result += coeffA(j) * coeffA(k) * coeffB(l) * coeffB(m) * zeroToZero(basisFunction1, basisFunction2, sigmaA, sigmaB);
+                    // std::cout << "result: " << result << std::endl;
+                }
+            }
+        }
+    }
+    return result; 
+}
+
+arma::field<arma::vec> CNDO::createGammaDerivativeMat(map<int, BasisFunction> basis_map) {
+
+    // std::cout << "Creating gamma derivative matrix" << std::endl;
+    arma::field<arma::vec> gammaDerivativeMat = arma::field<arma::vec>(basis_map.size(), basis_map.size());
+    for (int i = 0; i < basis_map.size(); i++) {
+        for (int j = 0; j < basis_map.size(); j++) {
+            // std::cout << "Calculate gamma derivative for basis function " << i << " and " << j << std::endl;
+            gammaDerivativeMat(i, j) = gammaDerivative(basis_map[i], basis_map[j]);
+            // std::cout << "gamma derivative: " << gammaDerivativeMat(i, j) << std::endl;
+        }
+    }
+    return gammaDerivativeMat;
+}
+
 
 
 

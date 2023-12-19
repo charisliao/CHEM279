@@ -41,6 +41,10 @@ class CNDO {
         arma::vec updatePtotal(vector<string> atom_types, vector<BasisFunction> basis_set, arma::mat& densityMat);
         double calculateNuclearRepulsionEnergy(vector<string> atom_types, AO AO_object);
         double calculateElectronEnergy(arma::mat& densityMat, arma::mat& Hcore_mat, arma::mat& Fock_mat);
-        void updateDensityMatrix(AO AO_object, std::string output_file_name);
-
+        arma::mat updateDensityMatrix(AO AO_object, std::string returnType);
+        arma::mat createMatX(vector<BasisFunction> basis_set, arma::mat& totalDensityMat);
+        arma::mat createMatY(vector<BasisFunction> basis_set, std::map<int, BasisFunction> basis_map, arma::vec TotalDensityVec, arma::mat& densityAlpha, arma::mat& densityBeta);
+        arma::rowvec zeroToZero(BasisFunction& basisFunction1, BasisFunction& basisFunction2, double sigmaA, double sigmaB);
+        arma::vec gammaDerivative(BasisFunction basisFunction1, BasisFunction basisFunction2);
+        arma::field<arma::vec> createGammaDerivativeMat(map<int, BasisFunction> basis_map);
 };

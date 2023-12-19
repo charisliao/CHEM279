@@ -61,3 +61,11 @@ double I2e_pG(arma::rowvec &Ra, arma::rowvec &Rb, double sigmaA, double sigmaB) 
     return result; 
 
 }
+
+void printField(arma::field<arma::vec> field) {
+    for (int i = 0; i < field.n_rows; i++) {
+        for (int j = 0; j < field.n_cols; j++) {
+            std::cout << field(i, j) << "------" << std::endl;
+        }
+    }
+}

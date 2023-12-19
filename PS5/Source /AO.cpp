@@ -267,11 +267,6 @@ double overlapIntegral(BasisFunction& basisFunction1, BasisFunction& basisFuncti
     // double unnormalized_overlap = unnormOverlapIntegral(basisFunction1, basisFunction2);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            // cout << "normalization_constants(i): " << basisFunction1.normalization_constants(i) << endl;
-            // cout << "normalization_constants(j): " << basisFunction2.normalization_constants(j) << endl;
-            // cout << "contracted_coefficients(i): " << basisFunction1.contracted_coefficients(i) << endl;
-            // cout << "contracted_coefficients(j): " << basisFunction2.contracted_coefficients(j) << endl;
-            // cout << "unnormalized_overlap: " << unnormalized_overlap << endl;
 
             overlap_orbital += basisFunction1.normalization_constants(i) * basisFunction2.normalization_constants(j) * 
                              basisFunction1.contracted_coefficients(i) * basisFunction2.contracted_coefficients(j) * unnormOverlapIntegral(basisFunction1, basisFunction2, i, j);
@@ -288,11 +283,8 @@ arma::mat overlap_matrix(vector<BasisFunction>& basis_set) {
     arma::mat S = arma::zeros(basis_set.size(), basis_set.size());
     for (int i = 0; i < basis_set.size(); i++) {
         for (int j = 0; j < basis_set.size(); j++) {
-            // cout << "inside overlap matrix call overlap integral" << endl;
-            // cout << "basis_set[i]: " << basis_set[i].normalization_constants<< endl;
-            // cout << "basis_set[j]: " << basis_set[j].normalization_constants << endl;
+        
             double temp; 
-            // range test if 
             if (abs(overlapIntegral(basis_set[i], basis_set[j])) < 1e-15) {
                 temp = 0.0;
             } else {
@@ -305,6 +297,85 @@ arma::mat overlap_matrix(vector<BasisFunction>& basis_set) {
     }
     return S;
 }
+
+
+double derivative_OV(int dim, BasisFunction& basisFunction1, BasisFunction& basisFunction2) {
+    arma::vec lmn1 = basisFunction1.lmn;
+    arma::vec lmn2 = basisFunction2.lmn;
+
+    double derivative = 0.0;
+
+    if (lmn1(dim) == 0) {
+        derivative = 2 * basisFunction1.exponents(dim) * overlap_integral_1D(basisFunction1.center(dim), basisFunction2.center(dim), basisFunction1.exponents(dim), basisFunction2.exponents(dim), lmn1(dim) + 1, lmn2(dim));   
+    }
+
+    if (lmn1(dim) == 1) {
+        derivative = -1.0 * overlap_integral_1D(basisFunction1.center(dim), basisFunction2.center(dim), basisFunction1.exponents(dim), basisFunction2.exponents(dim), lmn1(dim) - 1, lmn2(dim)) + 
+        2 * basisFunction1.exponents(dim) * overlap_integral_1D(basisFunction1.center(dim), basisFunction2.center(dim), basisFunction1.exponents(dim), basisFunction2.exponents(dim), lmn1(dim) + 1, lmn2(dim));
+
+    }
+
+    return derivative;
+
+}
+
+arma::vec contractedOV_derivative(BasisFunction basisFunction1, BasisFunction basisFunction2) {
+    arma::vec derivatives = arma::zeros(3);
+
+    for (int dim = 0; dim < 3; dim++) {
+        double overlap_dim = 0.0;
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                overlap_dim += basisFunction1.contracted_coefficients(i) * basisFunction2.contracted_coefficients(j) *
+                               basisFunction1.normalization_constants(i) * basisFunction2.normalization_constants(j) *
+                               derivative_OV(dim, basisFunction1, basisFunction2) *
+                               overlap_integral_1D(basisFunction1.center((dim+1)%3), basisFunction2.center((dim+1)%3),
+                                                   basisFunction1.exponents(i), basisFunction2.exponents(j),
+                                                   basisFunction1.lmn(i), basisFunction2.lmn(j)) *
+                               overlap_integral_1D(basisFunction1.center((dim+2)%3), basisFunction2.center((dim+2)%3),
+                                                   basisFunction1.exponents(i), basisFunction2.exponents(j),
+                                                   basisFunction1.lmn(i), basisFunction2.lmn(j));
+            }
+        }
+
+        derivatives(dim) = overlap_dim;
+    }
+
+    return derivatives;
+}
+
+arma::field<arma::vec> overlapMatrix_derivative(vector<BasisFunction>& basis_set) {
+
+    // std::cout << "inside overlapMatrix_derivative" << std::endl;
+    arma::field<arma::vec> overlap(basis_set.size(), basis_set.size());
+
+    for (int mu = 0; mu < basis_set.size(); mu++) {
+        for (int nu = 0; nu < basis_set.size(); nu++) {
+
+            arma::vec result;
+
+            if (basis_set[mu].atom_index != basis_set[nu].atom_index) {
+                // std::cout << "inside overlapMatrix_derivative if statement" << std::endl;
+                overlap(mu, nu) = contractedOV_derivative(basis_set[mu], basis_set[nu]);
+                // std::cout << "result: " << result << std::endl;
+            } else {
+                overlap(mu, nu) = {0, 0, 0};
+            }
+            
+        }
+    }
+    return overlap;
+}
+
+
+
+
+
+
+
+
+
 
 
 
