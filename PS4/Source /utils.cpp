@@ -61,23 +61,3 @@ double I2e_pG(arma::rowvec &Ra, arma::rowvec &Rb, double sigmaA, double sigmaB) 
     return result; 
 
 }
-
-double dRA_I2e_pG(double centerA, double centerB, double sigmaA, double sigmaB) {
-    double U = pow(M_PI * sigmaA, 1.5) * pow(M_PI * sigmaB, 1.5); //eq 3.8 and 3.11
-    double V2 = 1.0 / (sigmaA+sigmaB); //eq. 3.9 
-
-    double Rd = centerA - centerB;
-    
-    if (Rd == 0.0) {
-        //use eq 3.15
-        return U * sqrt(2*V2) * sqrt(2/M_PI);
-    }
-    //eq. 3.14 need sqrt T
-    double srT = sqrt(V2) * Rd; 
-
-    // eq 3.14
-    double result = U / Rd * erf(srT); 
-    return result; 
-
-
-}
